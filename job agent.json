@@ -1,0 +1,1021 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.adzuna.com/v1/api/jobs/in/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "f074550a"
+            },
+            {
+              "name": "app_key",
+              "value": "f9916085cb0ad362ab72055ac25454d5"
+            },
+            {
+              "name": "what",
+              "value": "backend developer"
+            },
+            {
+              "name": "where",
+              "value": "bangalore"
+            },
+            {
+              "name": "results_per_page",
+              "value": "10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -384,
+        -128
+      ],
+      "id": "a84d95a2-754d-4801-a9c6-62eec12dac0b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c",
+          "mode": "list",
+          "cachedResultName": "job-applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 569552806,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit#gid=569552806"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "title": "={{ $json.title }}",
+            "company name": "={{ $json.company }}",
+            "location ": "={{ $json.location }}",
+            "description": "={{ $json.description }}",
+            "link": "={{ $json.url }}",
+            "posted on ": "={{ $json.created }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company name",
+              "displayName": "company name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location ",
+              "displayName": "location ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted on ",
+              "displayName": "posted on ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        80,
+        -128
+      ],
+      "id": "eb1b6237-a9ca-4082-b297-ad06657a833c",
+      "name": "Check Job IDs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bilGfnMAxJLOwKyY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input items (usually one item that wraps the Adzuna API response)\nconst inputItems = await $input.all();\nconst rawData = inputItems[0].json;\n\n// Validate structure\nif (!Array.isArray(rawData.results || rawData[0]?.results)) {\n  throw new Error(\"Invalid Adzuna API structure\");\n}\n\n// Extract results array (depending on whether you're flattening results or not)\nconst jobResults = rawData.results || rawData[0].results;\n\nreturn jobResults.map(job => ({\n  json: {\n    id: job.id || null,\n    title: job.title || \"\",\n    company: job.company?.display_name || \"\",\n    location: job.location?.display_name || \"\",\n    category: job.category?.label || \"\",\n    description: (job.description || \"\").replace(/\\s+/g, \" \").slice(0, 200) + \"...\",\n    url: job.redirect_url || \"\",\n    created: job.created || \"\",\n    latitude: job.latitude || null,\n    longitude: job.longitude || null,\n    salaryPredicted: job.salary_is_predicted === \"1\",\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -128
+      ],
+      "id": "0a1efbf6-8652-4954-8afc-ea09ec03dec8",
+      "name": "Extract Job Postings"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Use a Set to track unique IDs\nconst seen = new Set();\nconst deduplicated = [];\n\nfor (const item of items) {\n  const jobId = item.json.id;\n\n  if (!seen.has(jobId)) {\n    seen.add(jobId);\n    deduplicated.push(item);\n  }\n}\n\n// Return only unique job entries\nreturn deduplicated;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -128
+      ],
+      "id": "3a31186f-ddfe-43c9-82a2-ab5a938b9969",
+      "name": "Deduplication"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a job assistant helping extract structured job and company information.\n\nRespond ONLY with valid raw JSON (no backticks or markdown). Use the keys listed below. If a field is unknown, use null or an empty array — never skip a key.\n\nKeys:\n- role\n- jobID\n- company_name\n- position\n- location\n- skills_and_tech_required (array)\n- role_description\n- yoe\n- job_url\n- application_url\n- company_overview\n- industry\n- business_model\n\nInput:\nCompany: {{ $json[\"company name\"] }}\nLocation: {{ $json[\"location \"] }}\nTitle: {{ $json[\"title\"] }}\nDescription: {{ $json[\"description\"] }}\nLink: {{ $json[\"link\"] }}\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1120,
+        -144
+      ],
+      "id": "d585a9d5-7ffa-478d-8181-6a5c44cbb9ee",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528-qwen3-8b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        128
+      ],
+      "id": "c60277d3-deea-450a-9858-899e2dabf886",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bEHdkbiF48qH71cz",
+          "name": "deepseek"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"role\": \"string\",\n  \"jobID\": \"string or null\",\n  \"company_name\": \"string\",\n  \"position\": \"string\",\n  \"location\": \"string\",\n  \"skills_and_tech_required\": [\"string\"],\n  \"role_description\": \"string\",\n  \"yoe\": \"string or null\",\n  \"job_url\": \"string\",\n  \"application_url\": \"string or null\",\n  \"company_overview\": \"string or null\",\n  \"industry\": \"string or null\",\n  \"business_model\": \"string or null\"\n}\n",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        64
+      ],
+      "id": "15aae68d-5fbf-4be5-ad80-d7dcc827fcb0",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528-qwen3-8b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "f4935a90-bfa8-4cb4-8bb9-727ef72dc997",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bEHdkbiF48qH71cz",
+          "name": "deepseek"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c",
+          "mode": "list",
+          "cachedResultName": "job-applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 569552806,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit#gid=569552806"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.output.jobID }}",
+            "title": "={{ $json.output.role }}",
+            "company name": "={{ $json.output.company_name }}",
+            "location ": "={{ $json.output.location }}",
+            "description": "={{ $json.output.role_description }}",
+            "link": "={{ $json.output.job_url }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company name",
+              "displayName": "company name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location ",
+              "displayName": "location ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted on ",
+              "displayName": "posted on ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1472,
+        -144
+      ],
+      "id": "b0cd2ae1-6221-42dc-8b37-cfe0456c9da8",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bilGfnMAxJLOwKyY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1lh7DwDr2xQ-B9d5LRCidX7Fuokv84Vq7CWmC_zcDOzA"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        -144
+      ],
+      "id": "08e546e0-2bd1-4c01-ad46-50274d3df4d6",
+      "name": "Get a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YuQtGrCstn3LGnwy",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a resume assistant that takes a job description {{ $('Append row in sheet').item.json.description }}and a candidate's existing resume content {{ $json.content }}, and tailors only the following parts:\n\n    summary\n\n    internship and experience bullet points\n\n    project descriptions\n\n    skills and expertise\n\nFocus on aligning the candidate’s content with the language, skills, and priorities of the job description. Avoid copying job description text directly. Instead, adapt the candidate’s achievements and tools to highlight relevance.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1888,
+        -160
+      ],
+      "id": "6e036e92-66dc-4312-952f-82a57aabab96",
+      "name": "Basic LLM Chain1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528-qwen3-8b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        80
+      ],
+      "id": "533ab4ed-2fa6-427c-831b-ccbf2f397cb3",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bEHdkbiF48qH71cz",
+          "name": "deepseek"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"summary\": \"Tailored summary aligned with the job role, highlighting most relevant experience, technologies, and strengths.\",\n  \"experience\": {\n    \"Infomin Technology\": [\n      \"Tailored bullet point 1\",\n      \"Tailored bullet point 2\"\n    ],\n    \"ComedKares\": [\n      \"Tailored bullet point 1\",\n      \"Tailored bullet point 2\"\n    ]\n  },\n  \"projects\": {\n    \"WeatherPin\": \"Tailored description emphasizing backend/serverless/DevOps skills for the job\",\n    \"EGGLang\": \"Tailored description showcasing system design and logic building relevant to role\",\n    \"CRUD-Based Product Inventory Tracker\": \"Modified description connecting full-stack development with job requirements\"\n  },\n  \"skills_and_expertise\": [\n    \"Skill most relevant to job\",\n    \"Next important skill\",\n    \"Tech/framework required in job\",\n    \"Cloud/DevOps tools mentioned in JD\",\n    \"Soft skills or teamwork if mentioned\"\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2080,
+        80
+      ],
+      "id": "0af6c9af-3da6-471d-96d5-b84a4aada2b8",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c",
+          "mode": "list",
+          "cachedResultName": "job-applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 569552806,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UYcyMMRi8eMSuwTHb6HasKK5H9FvHgy7tsXw9-izx_c/edit#gid=569552806"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tailor resume": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company name",
+              "displayName": "company name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location ",
+              "displayName": "location ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted on ",
+              "displayName": "posted on ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tailor resume",
+              "displayName": "tailor resume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        2272,
+        -144
+      ],
+      "id": "7b1d9b75-9d97-4b20-a008-a8324bb6ed3b",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bilGfnMAxJLOwKyY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        -128
+      ],
+      "id": "d88f9975-20a3-464c-ba62-298a5f9e738d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        800,
+        -272
+      ],
+      "id": "ee4f535a-168f-471b-8b54-1872abbe2f8b",
+      "name": "Loop Over Items",
+      "retryOnFail": false
+    }
+  ],
+  "pinData": {
+    "Check Job IDs": [
+      {
+        "json": {
+          "id": "5178942020",
+          "title": "Backend Developer",
+          "company name": "Verint Systems, Inc.",
+          "location ": "Bangalore, Karnataka",
+          "description": "At Verint, we believe customer engagement is the core of every global brand. Our mission is to help organizations elevate Customer Experience (CX) and increase workforce productivity by delivering CX ...",
+          "link": "https://www.adzuna.in/land/ad/5178942020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=15B34EE9C960F741BFDEE06AFAAC83192230E771",
+          "posted on ": "2025-05-03T23:11:50Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5019094389",
+          "title": "Backend Java Developer",
+          "company name": "ANSR Global Corporation",
+          "location ": "Bangalore, Karnataka",
+          "description": "We're seeking a talented Junior Backend Developer to join our growing team! In this role, you'll be mentored by senior developers as you build and maintain backend systems using Python and Django, con...",
+          "link": "https://www.adzuna.in/land/ad/5019094389?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=058FB07357468075695238ED42900E7F5E4A0301",
+          "posted on ": "2025-01-22T11:47:49Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5166895149",
+          "title": "Senior Backend developer",
+          "company name": "Continental",
+          "location ": "Bangalore, Karnataka",
+          "description": "Contitech Industries is part to Continental AG. Headquartered in Hannover, Germany, the division contributes to Euro 5B to Continentals Euro 40B turnover. The Digital solutions team of Contitech cater...",
+          "link": "https://www.adzuna.in/land/ad/5166895149?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=6F944D01BAF08E1ED4B1927FB484721ACEED51A3",
+          "posted on ": "2025-04-28T23:08:01Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5200261933",
+          "title": "Senior backend developer",
+          "company name": "Xylem",
+          "location ": "Bangalore, Karnataka",
+          "description": "Xylem is a Fortune 500 global water solutions company dedicated to advancing sustainable impact and empowering the people who make water work every day. As a leading water technology company with 23,0...",
+          "link": "https://www.adzuna.in/land/ad/5200261933?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=BF083318B87DE1C924FD129EFD03949D982726A2",
+          "posted on ": "2025-05-15T23:15:52Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5307823213",
+          "title": "Senior Backend Developer",
+          "company name": "Verint Systems, Inc.",
+          "location ": "Bangalore, Karnataka",
+          "description": "At Verint, we believe customer engagement is the core of every global brand. Our mission is to help organizations elevate Customer Experience (CX) and increase workforce productivity by delivering CX ...",
+          "link": "https://www.adzuna.in/land/ad/5307823213?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=12C2CC69328E5C7B7AC00784CF369D8E2E2D7829",
+          "posted on ": "2025-07-17T10:39:32Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5222005899",
+          "title": "Java Backend Developer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction IBM Systems helps IT leaders think differently about their infrastructure. IBM servers and storage are no longer inanimate - they can understand, reason, and learn so our clients can inno...",
+          "link": "https://www.adzuna.in/land/ad/5222005899?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=488E854142F997D8DEF680581ED5C879E4F24DAE",
+          "posted on ": "2025-05-29T23:24:06Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5282454473",
+          "title": "Backend Developer-Installer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction Introduction Software Developers at IBM are the backbone of our strategic initiatives to design, code, test, and provide industry-leading solutions that make the world run today - planes ...",
+          "link": "https://www.adzuna.in/land/ad/5282454473?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=85485F548230625E7B0315C98CE6606F6262BD8E",
+          "posted on ": "2025-07-04T02:14:25Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5282454523",
+          "title": "Backend Developer - Security Enginer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction Introduction Software Developers at IBM are the backbone of our strategic initiatives to design, code, test, and provide industry-leading solutions that make the world run today - planes ...",
+          "link": "https://www.adzuna.in/land/ad/5282454523?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=2A105997063776D76CFD0E3C6FBF4FC0A34A47F5",
+          "posted on ": "2025-07-04T02:14:25Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5288141020",
+          "title": "IBM Cloud Backend Developer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction The IBM Cloud Data Services teams are responsible for developing and operating the Software as a Service (SaaS) offerings that provide Data Services in IBM Cloud. Candidates should have a...",
+          "link": "https://www.adzuna.in/land/ad/5288141020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=9B60F8EFE8DC3BCC5793C70C0A1BDA15B77E0D27",
+          "posted on ": "2025-07-06T02:11:58Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5256789020",
+          "title": "Software Engineer Backend Developer Python",
+          "company name": "Kyndryl",
+          "location ": "Bangalore, Karnataka",
+          "description": "Who We Are At Kyndryl, we design, build, manage and modernize the mission-critical technology systems that the world depends on every day. So why work at Kyndryl? We are always moving forward - always...",
+          "link": "https://www.adzuna.in/land/ad/5256789020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=79676C9281D7A99C02F57561D1E9228D7DF83551",
+          "posted on ": "2025-06-18T23:43:13Z"
+        }
+      }
+    ],
+    "Deduplication": [
+      {
+        "json": {
+          "id": "5178942020",
+          "title": "Backend Developer",
+          "company name": "Verint Systems, Inc.",
+          "location ": "Bangalore, Karnataka",
+          "description": "At Verint, we believe customer engagement is the core of every global brand. Our mission is to help organizations elevate Customer Experience (CX) and increase workforce productivity by delivering CX ...",
+          "link": "https://www.adzuna.in/land/ad/5178942020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=15B34EE9C960F741BFDEE06AFAAC83192230E771",
+          "posted on ": "2025-05-03T23:11:50Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5019094389",
+          "title": "Backend Java Developer",
+          "company name": "ANSR Global Corporation",
+          "location ": "Bangalore, Karnataka",
+          "description": "We're seeking a talented Junior Backend Developer to join our growing team! In this role, you'll be mentored by senior developers as you build and maintain backend systems using Python and Django, con...",
+          "link": "https://www.adzuna.in/land/ad/5019094389?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=058FB07357468075695238ED42900E7F5E4A0301",
+          "posted on ": "2025-01-22T11:47:49Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5166895149",
+          "title": "Senior Backend developer",
+          "company name": "Continental",
+          "location ": "Bangalore, Karnataka",
+          "description": "Contitech Industries is part to Continental AG. Headquartered in Hannover, Germany, the division contributes to Euro 5B to Continentals Euro 40B turnover. The Digital solutions team of Contitech cater...",
+          "link": "https://www.adzuna.in/land/ad/5166895149?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=6F944D01BAF08E1ED4B1927FB484721ACEED51A3",
+          "posted on ": "2025-04-28T23:08:01Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5200261933",
+          "title": "Senior backend developer",
+          "company name": "Xylem",
+          "location ": "Bangalore, Karnataka",
+          "description": "Xylem is a Fortune 500 global water solutions company dedicated to advancing sustainable impact and empowering the people who make water work every day. As a leading water technology company with 23,0...",
+          "link": "https://www.adzuna.in/land/ad/5200261933?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=BF083318B87DE1C924FD129EFD03949D982726A2",
+          "posted on ": "2025-05-15T23:15:52Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5307823213",
+          "title": "Senior Backend Developer",
+          "company name": "Verint Systems, Inc.",
+          "location ": "Bangalore, Karnataka",
+          "description": "At Verint, we believe customer engagement is the core of every global brand. Our mission is to help organizations elevate Customer Experience (CX) and increase workforce productivity by delivering CX ...",
+          "link": "https://www.adzuna.in/land/ad/5307823213?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=12C2CC69328E5C7B7AC00784CF369D8E2E2D7829",
+          "posted on ": "2025-07-17T10:39:32Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5222005899",
+          "title": "Java Backend Developer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction IBM Systems helps IT leaders think differently about their infrastructure. IBM servers and storage are no longer inanimate - they can understand, reason, and learn so our clients can inno...",
+          "link": "https://www.adzuna.in/land/ad/5222005899?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=488E854142F997D8DEF680581ED5C879E4F24DAE",
+          "posted on ": "2025-05-29T23:24:06Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5282454473",
+          "title": "Backend Developer-Installer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction Introduction Software Developers at IBM are the backbone of our strategic initiatives to design, code, test, and provide industry-leading solutions that make the world run today - planes ...",
+          "link": "https://www.adzuna.in/land/ad/5282454473?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=85485F548230625E7B0315C98CE6606F6262BD8E",
+          "posted on ": "2025-07-04T02:14:25Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5282454523",
+          "title": "Backend Developer - Security Enginer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction Introduction Software Developers at IBM are the backbone of our strategic initiatives to design, code, test, and provide industry-leading solutions that make the world run today - planes ...",
+          "link": "https://www.adzuna.in/land/ad/5282454523?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=2A105997063776D76CFD0E3C6FBF4FC0A34A47F5",
+          "posted on ": "2025-07-04T02:14:25Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5288141020",
+          "title": "IBM Cloud Backend Developer",
+          "company name": "IBM",
+          "location ": "Bangalore, Karnataka",
+          "description": "Introduction The IBM Cloud Data Services teams are responsible for developing and operating the Software as a Service (SaaS) offerings that provide Data Services in IBM Cloud. Candidates should have a...",
+          "link": "https://www.adzuna.in/land/ad/5288141020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=9B60F8EFE8DC3BCC5793C70C0A1BDA15B77E0D27",
+          "posted on ": "2025-07-06T02:11:58Z"
+        }
+      },
+      {
+        "json": {
+          "id": "5256789020",
+          "title": "Software Engineer Backend Developer Python",
+          "company name": "Kyndryl",
+          "location ": "Bangalore, Karnataka",
+          "description": "Who We Are At Kyndryl, we design, build, manage and modernize the mission-critical technology systems that the world depends on every day. So why work at Kyndryl? We are always moving forward - always...",
+          "link": "https://www.adzuna.in/land/ad/5256789020?se=_HN9UFVm8BGxnMEoGe2p-A&utm_medium=api&utm_source=f074550a&v=79676C9281D7A99C02F57561D1E9228D7DF83551",
+          "posted on ": "2025-06-18T23:43:13Z"
+        }
+      }
+    ],
+    "Get a document": [
+      {
+        "json": {
+          "documentId": "1lh7DwDr2xQ-B9d5LRCidX7Fuokv84Vq7CWmC_zcDOzA",
+          "content": "HEMANTH J\u000b Vijayanagar, Bengaluru · +91 82173 63366 · hemanthj257@gmail.com\u000b LinkedIn · GitHub\n\nPROFILE SUMMARY\nBackend developer with hands-on experience designing RESTful microservices, deploying cloud-native apps, and solving real-world problems through scalable backend systems. Built and deployed systems using Python, Django, Node.js, and PostgreSQL with a strong foundation in computer science fundamentals, teamwork, and cloud-based architecture.\n\nEDUCATION\nAtria Institute of Technology — B.E. Information Science and Engineering\u000b Dec 2021 – June 2025 | CGPA: 8.3 / 10\n\nEXPERIENCES\nInfomin Technology — Full Stack Developer Intern\u000b Aug 2024 – Feb 2025\nBuilt backend and frontend for a dynamic blog platform using Astro, React, Node.js, and Firebase.\u000b\nIntegrated Firestore and Mailgun for backend workflows and email communications.\u000b\nContributed to performance tuning and SEO enhancements, increasing web visibility by 20%.\u000b\nCollaborated in an agile 3-member team with Git-based version control.\u000b\nComedKares — Backend Intern\u000b Oct 2023 – Dec 2023\nDesigned RESTful microservices using Django to support an IVR and WhatsApp-integrated agricultural equipment rental system.\u000b\nIntegrated Twilio APIs and followed modular architecture for maintainability.\u000b\nSupported 30+ farmers through the app; backend logic validated in field trials.\u000b\n\nCOMPETITIONS & CONFERENCES\nSmart India Hackathon 2023 & 2024 — 2× National Finalist\u000b Ahmedabad, Gujarat\nLed deep learning research under ISRO mentorship using satellite imagery for geospatial challenges.\u000b\n2023: Built a change detection model using a Siamese ResNet-18 architecture.\u000b\nAchieved ~89% accuracy on LEVIR-CD dataset with binary change mask generation.\u000b\n2024: Designed a GAN-based SAR image colorization model (Pix2Pix) using PyTorch & OpenCV.\u000b\nProduced RGB visualizations of grayscale SAR inputs.\u000b\nStartup Mahakumbh – TiE Futurepreneur Challenge — Pitch Participant\u000b New Delhi\nRepresented GeoVista.ai: an AI-powered geospatial analytics platform for real estate and construction.\u000b\nPitched to startup founders, technologists, and VCs.\u000b\nGained strategic feedback on scalability and market fit.\u000b\n\nPROJECTS\nWeatherPin — Serverless Weather Forecasting App\u000b June 2025\nDeveloped backend using AWS Lambda, API Gateway, and Express.js.\u000b\nIntegrated OpenWeatherMap API for location-based forecasts by ZIP/PIN.\u000b\nHandled deployment via Serverless Framework and tested endpoints using Jest.js.\u000b\nEGGLang — JavaScript Functional Language Interpreter\u000b May 2025\nBuilt an AST-based interpreter with support for arithmetic, conditionals, and functions.\u000b\nDeveloped a real-time web playground with parsing and evaluation logic.\u000b\nDemonstrated backend understanding and custom language design.\u000b\nCRUD Product Inventory Tracker\u000b Oct 2024\nFull-stack app using HTML, CSS, JavaScript, Node.js, and PostgreSQL.\u000b\nImplemented RESTful APIs and relational schema for warehouse inventory.\u000b\nStructured for microservices and production-readiness.\u000b\n\nSKILLS & EXPERTISE\nLanguages:\u000b Python, JavaScript, Java, C++, R, SQL, NoSQL, TypeScript, HTML, CSS\nLibraries & Tools:\u000b PyTorch, Express.js, Node.js, OpenCV, Astro, React.js, Django, Jest, GraphQL, Tailwind, Gulp, Git, Docker, Unix/Linux, AWS Lambda, API Gateway, MongoDB, MatLab, PostgreSQL, SSH, Serverless, CrewAI, Prisma ORM\nSoft Skills:\u000b Collaboration, teamwork, mentorship, communication, adaptability, attention to detail, accountability, problem-solving, time management, continuous learning\nCourses:\nNPTEL: Natural Language Processing, The Joy of Computing Using Python\u000b\nINFOSYS Springboard: Java Fundamentals, DBMS Part 1, Cloud Computing\u000b\n\nVOLUNTEERING\nThe Literary Club — Discord Moderator\nBuilt custom Discord bots to manage events and improve community engagement.\u000b\nRotaract Club of Atria I.T. — International Service Director\nLed international campaigns and chaired award-nominated initiatives such as Ocean Awareness.\n\n"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Job Postings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Job IDs": {
+      "main": [
+        [
+          {
+            "node": "Deduplication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Job Postings": {
+      "main": [
+        [
+          {
+            "node": "Check Job IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d3f1b3f1-b5b8-489b-86ec-4e7d574a272a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "AVn3NvZigkalzhes",
+  "tags": []
+}
