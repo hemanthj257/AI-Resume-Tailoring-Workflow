@@ -1,4 +1,4 @@
-AI Resume Tailoring Workflow (n8n + Adzuna + LangChain)
+n8n Job Scraper  (n8n + Adzuna + LangChain)
 
 This n8n workflow automates job discovery and resume personalization using Adzuna, LangChain, and OpenRouter's DeepSeek model. It searches for relevant job listings, extracts structured metadata, and tailors your resume to match each job—hands-free.
 ✨ What It Does
